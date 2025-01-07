@@ -2,9 +2,11 @@ import os
 from openai import OpenAI
 import pandas as pd
 import time
+from dotenv import load_dotenv
+load_dotenv()
 
 # Initialize OpenAI client
-client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Read the Excel file using pandas
 excel_file = './updated_vc_qualifications.xlsx'
@@ -78,7 +80,7 @@ def get_vc_analysis(data_row):
 
         # Extract the response text
         response_text = response.choices[0].message.content.strip()
-
+        print(response_text)
         # Parse the response
         reason_line = response_text.split('- Reason: ')[1].split('- Status: ')[0].strip()
         status_line = response_text.split('- Status: ')[1].strip()
