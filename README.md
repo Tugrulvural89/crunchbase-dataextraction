@@ -51,13 +51,7 @@ To determine the "Fit" of a VC for Bold, I've defined the following criteria:
    * A small batch (20 VCs) was manually checked to compare the automated results with my own assessment.
    * The PoC achieved an accuracy of 95% in correctly classifying VCs as "Fit" or "Not Fit."
 
-**[Figure 1: Workflow Diagram - Include a visual flowchart here]**
 
-**[Code Snippet 1: Selenium Script - Include a portion of your well-commented code]**
-
-**[Spreadsheet Screenshot 1: Show the spreadsheet with new columns]**
-
-**[GPT-4 Prompt Example: Show an example of a prompt with your rules]**
 
 ## Deliverable 3: Applying to the Full List and Prioritization
 
