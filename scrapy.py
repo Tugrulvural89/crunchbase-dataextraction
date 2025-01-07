@@ -9,13 +9,21 @@ import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+load_dotenv()
+import os
+
+# Access variables
+USER_PROFILE_GOOGLE_PATH = os.getenv("USER_PROFILE_GOOGLE_PATH")
 
 # Chrome seçeneklerini ayarlayın
 options = webdriver.ChromeOptions()
-#options.binary_location = "/Users/kasimtugrulvural/Downloads/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
+#options.binary_location = "../Downloads/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
 
+#use your google profile
+user_data_dir= "user-data-dir=" + USER_PROFILE_GOOGLE_PATH
 #options.binary_location = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-options.add_argument("user-data-dir=/Users/kasimtugrulvural/Library/Application Support/Google/Chrome/Profile 1") 
+options.add_argument() 
 # WebDriver örneğini oluşturun
 driver = webdriver.Chrome(options=options)
 
@@ -280,7 +288,7 @@ def scrape_crunchbase_data(org_url):
         }
 
 # Read the Excel file with pandas
-file_path = "/Users/kasimtugrulvural/Documents/selenTest/vc_qualificationsd.xlsx"
+file_path = "./vc_qualificationsd.xlsx"
 df = pd.read_excel(file_path)
 
 
@@ -309,8 +317,6 @@ for col_name in new_columns.values():
 
 # Loop through each row, scrape data, and update the DataFrame
 for index, row in df.iterrows():
-    if index==0:
-        time.sleep(2)
     org_url = row['Crunchbase']  # Assuming the Crunchbase URL is in the 'Crunchbase' column
     print(f"Scraping data for {org_url}...")
 
@@ -331,7 +337,7 @@ for index, row in df.iterrows():
     print(f"Intermediate results saved for {index + 1} organizations.")
 
 # Save the updated DataFrame back to the Excel file
-updated_file_path = "/Users/kasimtugrulvural/Downloads/updated_vc_qualifications.xlsx"
+updated_file_path = "./updated_vc_qualifications.xlsx"
 df.to_excel(updated_file_path, index=False)
 
 print(f"Data scraping completed. Updated file saved to: {updated_file_path}")
