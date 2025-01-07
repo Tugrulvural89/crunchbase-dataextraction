@@ -1,26 +1,23 @@
 import os
-import openai
+from openai import OpenAI
 import pandas as pd
 import time
 
-# Your OpenAI API key
-openai.api_key = os.environ.get('OPENAI_API_KEY')  # Get API key from environment variable
+# Initialize OpenAI client
+client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
 
 # Read the Excel file using pandas
-excel_file = './venture_capital_data.xlsx'
+excel_file = './updated_vc_qualifications.xlsx'
 df = pd.read_excel(excel_file)
 
 # Define the columns you want to send to GPT-4
 columns_to_send = [
-    'Investment Stage',
     'Industries',
     'Funds',
-    'Investments',
     'Diversity Investments',
     'Exits',
     'Recent News',
     'Location',
-    'Employee Count',
     'Firm Type',
     'Investment Stages',
     'Website',
@@ -43,21 +40,20 @@ df['Status'] = None
 def get_vc_analysis(data_row):
     # Prepare the prompt
     prompt = f"""
-    Analyze the following venture capital firm information and provide a reason and status about whether it's a good fit for a startup looking for funding:
+    Analyze the following venture capital firm information and determine if it's a good fit for a startup looking for funding:
     Rules:
         - Should be in the Seed Stage
         - Invested between 3M $ and 5M $
         - Should be related to AI or EdTech
 
-    Investment Stage: {data_row['Investment Stage']}
+    Provide a detailed reason explaining why it is a fit or not, and a status ("Fit" or "Not Fit") based on the criteria.
+
     Industries: {data_row['Industries']}
     Funds: {data_row['Funds']}
-    Investments: {data_row['Investments']}
     Diversity Investments: {data_row['Diversity Investments']}
     Exits: {data_row['Exits']}
     Recent News: {data_row['Recent News']}
     Location: {data_row['Location']}
-    Employee Count: {data_row['Employee Count']}
     Firm Type: {data_row['Firm Type']}
     Investment Stages: {data_row['Investment Stages']}
     Website: {data_row['Website']}
@@ -66,12 +62,14 @@ def get_vc_analysis(data_row):
     Phone: {data_row['Phone']}
     Description Card: {data_row['Description Card']}
 
-    Based on the provided details, determine if this VC firm would be a good fit for a seed-stage technology startup, focusing on AI or EdTech. Provide a reason and status.
+    Return the output in the format:
+    - Reason: [Detailed explanation]
+    - Status: [Fit or Not Fit]
     """
 
     try:
         # Send the data to GPT-4 for analysis
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=4000,
@@ -81,12 +79,15 @@ def get_vc_analysis(data_row):
         # Extract the response text
         response_text = response.choices[0].message.content.strip()
 
-        # Split response into reason and status (try-catch for flexibility)
-        response_lines = response_text.split('\n')
-        reason = response_lines[0] if len(response_lines) > 0 else "No reason provided"
-        status = response_lines[1] if len(response_lines) > 1 else "Unknown"
+        # Parse the response
+        reason_line = response_text.split('- Reason: ')[1].split('- Status: ')[0].strip()
+        status_line = response_text.split('- Status: ')[1].strip()
 
-        return reason, status
+        # Ensure status is "Fit" or "Not Fit"
+        if status_line not in ["Fit", "Not Fit"]:
+            raise ValueError(f"Invalid status received: {status_line}")
+
+        return reason_line, status_line
     except Exception as e:
         return f"Error during analysis: {e}", "Error"
 
@@ -107,4 +108,3 @@ output_file = 'updated_venture_capital_data.xlsx'
 df.to_excel(output_file, index=False)
 
 print(f"Analysis complete. Results saved to '{output_file}'")
-
