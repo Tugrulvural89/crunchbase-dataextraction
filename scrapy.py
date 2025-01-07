@@ -21,9 +21,9 @@ options = webdriver.ChromeOptions()
 #options.binary_location = "../Downloads/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
 
 #use your google profile
-user_data_dir= "user-data-dir=" + USER_PROFILE_GOOGLE_PATH
+user_data_dir="user-data-dir=" + USER_PROFILE_GOOGLE_PATH
 #options.binary_location = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-options.add_argument() 
+options.add_argument(user_data_dir) 
 # WebDriver örneğini oluşturun
 driver = webdriver.Chrome(options=options)
 
@@ -333,7 +333,7 @@ for index, row in df.iterrows():
     
     # Optional: Save intermediate results every 10 organizations
    
-    df.to_excel("venture_capital_data.xlsx", index=False)
+    df.to_excel("updated_vc_qualifications.xlsx", index=False)
     print(f"Intermediate results saved for {index + 1} organizations.")
 
 # Save the updated DataFrame back to the Excel file
