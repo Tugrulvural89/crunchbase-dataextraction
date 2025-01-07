@@ -1,11 +1,13 @@
+import os
 import openai
 import pandas as pd
+import time
 
 # Your OpenAI API key
-openai.api_key = 'your-api-key'
+openai.api_key = os.environ.get('OPENAI_API_KEY')  # Get API key from environment variable
 
 # Read the Excel file using pandas
-excel_file = 'venture_capital_data.xlsx'  # Replace with the path to your Excel file
+excel_file = './venture_capital_data.xlsx'
 df = pd.read_excel(excel_file)
 
 # Define the columns you want to send to GPT-4
@@ -28,18 +30,24 @@ columns_to_send = [
     'Description Card'
 ]
 
+# Check if all required columns are in the dataframe
+missing_columns = [col for col in columns_to_send if col not in df.columns]
+if missing_columns:
+    raise ValueError(f"Missing columns in Excel file: {missing_columns}")
+
 # Create two new columns for the reason and status
 df['Reason'] = None
 df['Status'] = None
 
 # Function to send data to GPT-4 and get response
 def get_vc_analysis(data_row):
+    # Prepare the prompt
     prompt = f"""
     Analyze the following venture capital firm information and provide a reason and status about whether it's a good fit for a startup looking for funding:
     Rules:
-        include Seed Stage
-        invested before 3M - 5M
-        should related Invest Al, EdTech
+        - Should be in the Seed Stage
+        - Invested between 3M $ and 5M $
+        - Should be related to AI or EdTech
 
     Investment Stage: {data_row['Investment Stage']}
     Industries: {data_row['Industries']}
@@ -57,33 +65,46 @@ def get_vc_analysis(data_row):
     Contact: {data_row['Contact']}
     Phone: {data_row['Phone']}
     Description Card: {data_row['Description Card']}
-    
+
     Based on the provided details, determine if this VC firm would be a good fit for a seed-stage technology startup, focusing on AI or EdTech. Provide a reason and status.
     """
 
-    # Send the data to GPT-4 for analysis
-    response = openai.Completion.create(
-        engine="gpt-4",  # Or use "gpt-3.5-turbo" for faster responses
-        prompt=prompt,
-        max_tokens=300,  # Adjust token limit based on response length
-        temperature=0.7  # Control randomness in response
-    )
+    try:
+        # Send the data to GPT-4 for analysis
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=4000,
+            temperature=0.5
+        )
 
-    # Extract the response text
-    response_text = response['choices'][0]['text'].strip()
-    
-    # Split response into reason and status (you can adjust based on how GPT responds)
-    reason, status = response_text.split('\n', 1)
-    
-    return reason, status
+        # Extract the response text
+        response_text = response.choices[0].message.content.strip()
+
+        # Split response into reason and status (try-catch for flexibility)
+        response_lines = response_text.split('\n')
+        reason = response_lines[0] if len(response_lines) > 0 else "No reason provided"
+        status = response_lines[1] if len(response_lines) > 1 else "Unknown"
+
+        return reason, status
+    except Exception as e:
+        return f"Error during analysis: {e}", "Error"
 
 # Loop through each row and send the relevant data to GPT-4
 for index, row in df.iterrows():
-    reason, status = get_vc_analysis(row)
-    df.at[index, 'Reason'] = reason
-    df.at[index, 'Status'] = status
+    print(f"Processing row {index + 1}/{len(df)}...")
+    try:
+        reason, status = get_vc_analysis(row)
+        df.at[index, 'Reason'] = reason
+        df.at[index, 'Status'] = status
+    except Exception as e:
+        df.at[index, 'Reason'] = "Error"
+        df.at[index, 'Status'] = f"Error: {e}"
+    time.sleep(1)  # Delay to avoid rate limits (adjust as needed)
 
-# Save the updated dataframe back to an Excel file with the reason and status columns
-df.to_excel('updated_venture_capital_data.xlsx', index=False)
+# Save the updated dataframe back to an Excel file
+output_file = 'updated_venture_capital_data.xlsx'
+df.to_excel(output_file, index=False)
 
-print("Analysis complete. Results saved to 'updated_venture_capital_data.xlsx'")
+print(f"Analysis complete. Results saved to '{output_file}'")
+

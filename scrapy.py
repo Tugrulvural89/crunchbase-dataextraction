@@ -327,7 +327,7 @@ for index, row in df.iterrows():
     
     # Optional: Save intermediate results every 10 organizations
    
-    df.to_excel("updated_excel_file_temp.xlsx", index=False)
+    df.to_excel("venture_capital_data.xlsx", index=False)
     print(f"Intermediate results saved for {index + 1} organizations.")
 
 # Save the updated DataFrame back to the Excel file
