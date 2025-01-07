@@ -97,3 +97,9 @@ The developed PoC was applied to the full list of 300+ VCs.
 
     -   Download ChromeDriver: [https://chromedriver.chromium.org/](https://chromedriver.chromium.org/)
     -   Add ChromeDriver to PATH: Place the downloaded file in a folder and add its path to your system's environment variables.
+
+4.  **Run the Script:**
+
+    -  Run first scrapy wait until the browser is ready: ```python scrapy.py ```
+    -  Run main script: ```python review.py ```
+    
